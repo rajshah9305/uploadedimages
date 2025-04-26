@@ -1,112 +1,113 @@
-import Image from "next/image"
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
-
+import { ScrollAnimation } from "@/components/scroll-animation"
+import { AnimatedImage } from "@/components/animated-image"
+import { products } from "@/data/products"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { Search } from "lucide-react"
 
-// Product data
-const products = [
-  {
-    id: 1,
-    title: "Northern Lights Over Mountains",
-    description: "Aurora borealis dancing over snow-capped peaks",
-    price: 79.99,
-    image: "/images/northern-lights-1.png",
-    slug: "northern-lights-mountains",
-  },
-  {
-    id: 2,
-    title: "Sunset at Mountain Lake",
-    description: "Golden hour reflections with canoes",
-    price: 69.99,
-    image: "/images/lake-sunset.png",
-    slug: "sunset-mountain-lake",
-  },
-  {
-    id: 3,
-    title: "Aurora Valley",
-    description: "Northern lights illuminating a mountain valley",
-    price: 79.99,
-    image: "/images/northern-lights-2.png",
-    slug: "aurora-valley",
-  },
-  {
-    id: 4,
-    title: "Watercolor Lake",
-    description: "Artistic rendering of mountain lake with canoes",
-    price: 59.99,
-    image: "/images/watercolor-lake.png",
-    slug: "watercolor-lake",
-  },
-  {
-    id: 5,
-    title: "Banff Night Sky",
-    description: "Aurora borealis over Banff National Park",
-    price: 89.99,
-    image: "/images/banff-night.png",
-    slug: "banff-night-sky",
-  },
-  {
-    id: 6,
-    title: "Winter Aurora",
-    description: "Northern lights over frozen mountain stream",
-    price: 79.99,
-    image: "/images/winter-aurora.png",
-    slug: "winter-aurora",
-  },
-  {
-    id: 7,
-    title: "Moraine Lake Sunrise",
-    description: "Golden light on mountains with canoes",
-    price: 69.99,
-    image: "/images/moraine-lake.png",
-    slug: "moraine-lake-sunrise",
-  },
-  {
-    id: 8,
-    title: "Pastel Mountain Sunset",
-    description: "Vibrant sunset colors reflecting on alpine lake",
-    price: 69.99,
-    image: "/images/sunset-mountains.png",
-    slug: "pastel-mountain-sunset",
-  },
+// Collection categories
+const collections = [
+  { id: "all", name: "All Prints" },
+  { id: "aurora", name: "Aurora Collection" },
+  { id: "sunset", name: "Sunset Collection" },
+  { id: "lakes", name: "Alpine Lakes" },
 ]
 
 export default function GalleryPage() {
+  const [activeFilter, setActiveFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Filter products based on active filter and search query
+  const filteredProducts = products.filter((product) => {
+    const matchesFilter = activeFilter === "all" || product.title.toLowerCase().includes(activeFilter.toLowerCase())
+    const matchesSearch =
+      searchQuery === "" ||
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return matchesFilter && matchesSearch
+  })
+
   return (
-    <div className="container mx-auto py-12 px-4">
-      <div className="max-w-3xl mx-auto text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Photography Gallery</h1>
-        <p className="text-lg text-muted-foreground">
+    <div className="container mx-auto py-24 px-4">
+      <ScrollAnimation animation="slide-up" className="max-w-3xl mx-auto text-center mb-12">
+        <h1 className="font-playfair text-4xl font-bold mb-4">Photography Gallery</h1>
+        <p className="text-lg text-slate-300">
           Browse our collection of premium mountain landscape prints, each capturing the breathtaking beauty of nature's
           most majestic scenes.
         </p>
+      </ScrollAnimation>
+
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-wrap gap-2">
+            {collections.map((collection) => (
+              <Button
+                key={collection.id}
+                variant={activeFilter === collection.id ? "default" : "outline"}
+                onClick={() => setActiveFilter(collection.id)}
+                className={activeFilter === collection.id ? "bg-yellow-400 text-black hover:bg-yellow-500" : ""}
+              >
+                {collection.name}
+              </Button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Input
+              placeholder="Search prints..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <Card key={product.id} className="overflow-hidden group">
-            <Link href={`/product/${product.slug}`}>
-              <div className="relative aspect-square overflow-hidden">
-                <Image
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-1">{product.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">${product.price.toFixed(2)}</span>
-                  <Button size="sm">View Details</Button>
-                </div>
-              </CardContent>
-            </Link>
-          </Card>
-        ))}
-      </div>
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-medium mb-4">No prints found</h2>
+          <p className="text-slate-300 mb-8">Try adjusting your search or filter criteria.</p>
+          <Button
+            onClick={() => {
+              setActiveFilter("all")
+              setSearchQuery("")
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ScrollAnimation key={product.id} animation="fade" className="h-full">
+              <Card className="overflow-hidden group h-full bg-slate-800 border-slate-700">
+                <Link href={`/product/${product.slug}`}>
+                  <div className="relative aspect-square overflow-hidden">
+                    <AnimatedImage
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-1">{product.title}</h3>
+                    <p className="text-sm text-slate-300 mb-2">{product.description}</p>
+                    <span className="font-medium">${product.price.toFixed(2)}</span>
+                  </div>
+                </Link>
+              </Card>
+            </ScrollAnimation>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
